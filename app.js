@@ -41,6 +41,18 @@ const timingSlots = [
   { value: "evening", label: "晩" },
 ];
 
+function isMedicationScheduledForDate(medication, dateString) {
+  return dateString >= medication.startDate && dateString <= medication.endDate;
+}
+
+function getScheduledTimings(medication, dateString) {
+  if (!isMedicationScheduledForDate(medication, dateString)) {
+    return [];
+  }
+
+  return [...medication.timings];
+}
+
 function createRecordId() {
   recordSequence += 1;
   return `record-${Date.now()}-${recordSequence}`;
@@ -171,7 +183,7 @@ function displaySchedule() {
 
   timingSlots.forEach((slot) => {
     const medicinesForTiming = medications.filter((medication) =>
-      medication.timings.includes(slot.value),
+      getScheduledTimings(medication, scheduledDate).includes(slot.value),
     );
 
     if (medicinesForTiming.length === 0) {
