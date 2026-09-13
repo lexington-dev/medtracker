@@ -40,6 +40,115 @@ h1 {
   gap: 20px;
 }
 
+.registration-section,
+.registered-section {
+  margin-top: 32px;
+}
+
+.registration-section h2,
+.registered-section h2 {
+  margin: 0 0 14px;
+  font-size: 1.25rem;
+}
+
+.medication-form,
+.medications-list {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 18px;
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgb(31 41 55 / 8%);
+}
+
+.medication-form label {
+  display: grid;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.medication-form input[type="text"],
+.medication-form input[type="date"] {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid #9ca3af;
+  border-radius: 8px;
+  background: #ffffff;
+  font: inherit;
+}
+
+.medication-form fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+}
+
+.medication-form fieldset label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 400;
+}
+
+.registration-button {
+  min-height: 48px;
+  border: 0;
+  border-radius: 8px;
+  background: #2f80d1;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 700;
+}
+
+.medications-list {
+  padding: 0;
+  list-style: none;
+}
+
+.registered-medication,
+.empty-medications-message {
+  padding: 14px 16px;
+}
+
+.registered-medication + .registered-medication {
+  border-top: 1px solid #e5e7eb;
+}
+
+.registered-medication p,
+.empty-medications-message {
+  margin: 6px 0 0;
+  color: #526070;
+}
+
+.medication-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.edit-button,
+.delete-button {
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 1px solid #2f80d1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1d4f8c;
+  font: inherit;
+  font-weight: 700;
+}
+
+.delete-button {
+  border-color: #c2413b;
+  color: #a52c26;
+}
+
 .time-slot {
   overflow: hidden;
   background: #ffffff;

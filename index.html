@@ -14,9 +14,41 @@
       </header>
 
       <section id="schedule" class="schedule" aria-label="今日の服薬予定"></section>
+
+      <section class="registration-section" aria-labelledby="registration-title">
+        <h2 id="registration-title">薬を登録</h2>
+        <form id="medication-form" class="medication-form">
+          <label>
+            薬の名前
+            <input type="text" name="name" required />
+          </label>
+
+          <fieldset>
+            <legend>服用タイミング</legend>
+            <label><input type="checkbox" name="timings" value="morning" /> 朝</label>
+            <label><input type="checkbox" name="timings" value="noon" /> 昼</label>
+            <label><input type="checkbox" name="timings" value="evening" /> 晩</label>
+          </fieldset>
+
+          <label>
+            開始日
+            <input type="date" name="startDate" required />
+          </label>
+          <label>
+            終了日
+            <input type="date" name="endDate" required />
+          </label>
+
+          <button id="medication-submit-button" class="registration-button" type="submit">登録する</button>
+        </form>
+      </section>
+
+      <section class="registered-section" aria-labelledby="registered-title">
+        <h2 id="registered-title">登録した薬</h2>
+        <ul id="medications-list" class="medications-list"></ul>
+      </section>
     </main>
 
-    <script src="data.js"></script>
     <script src="storage.js"></script>
     <script src="app.js"></script>
   </body>

@@ -1,7 +1,14 @@
 const todayDateElement = document.querySelector("#today-date");
 const scheduleElement = document.querySelector("#schedule");
+const medicationForm = document.querySelector("#medication-form");
+const medicationsList = document.querySelector("#medications-list");
+const medicationSubmitButton = document.querySelector("#medication-submit-button");
+const timingInputs = medicationForm.querySelectorAll('input[name="timings"]');
 const medicationRecords = loadRecords();
+const medications = loadMedications();
 let recordSequence = 0;
+let medicationSequence = 0;
+let editingMedicationId = null;
 
 function formatToday() {
   const today = new Date();
@@ -28,10 +35,111 @@ function getScheduledDate() {
 }
 
 const scheduledDate = getScheduledDate();
+const timingSlots = [
+  { value: "morning", label: "朝" },
+  { value: "noon", label: "昼" },
+  { value: "evening", label: "晩" },
+];
 
 function createRecordId() {
   recordSequence += 1;
   return `record-${Date.now()}-${recordSequence}`;
+}
+
+function createMedicationId() {
+  medicationSequence += 1;
+  return `med-${Date.now()}-${medicationSequence}`;
+}
+
+function formatTimings(timings) {
+  const timingLabels = { morning: "朝", noon: "昼", evening: "晩" };
+  return timings.map((timing) => timingLabels[timing]).join("・");
+}
+
+function resetMedicationForm() {
+  medicationForm.reset();
+  timingInputs[0].setCustomValidity("");
+  editingMedicationId = null;
+  medicationSubmitButton.textContent = "登録する";
+}
+
+function startEditingMedication(medication) {
+  editingMedicationId = medication.id;
+  timingInputs[0].setCustomValidity("");
+  medicationForm.elements.name.value = medication.name;
+  medicationForm.elements.startDate.value = medication.startDate;
+  medicationForm.elements.endDate.value = medication.endDate;
+
+  timingInputs.forEach((timingInput) => {
+    timingInput.checked = medication.timings.includes(timingInput.value);
+  });
+
+  medicationSubmitButton.textContent = "更新する";
+  medicationForm.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function deleteMedication(medicationId, medicationName) {
+  if (!window.confirm(`「${medicationName}」を削除しますか？`)) {
+    return;
+  }
+
+  const medicationIndex = medications.findIndex((medication) => medication.id === medicationId);
+
+  if (medicationIndex === -1) {
+    return;
+  }
+
+  medications.splice(medicationIndex, 1);
+  saveMedications(medications);
+
+  if (editingMedicationId === medicationId) {
+    resetMedicationForm();
+  }
+
+  displayMedications();
+  displaySchedule();
+}
+
+function displayMedications() {
+  medicationsList.replaceChildren();
+
+  if (medications.length === 0) {
+    const emptyMessage = document.createElement("li");
+    emptyMessage.className = "empty-medications-message";
+    emptyMessage.textContent = "登録した薬はまだありません。";
+    medicationsList.append(emptyMessage);
+    return;
+  }
+
+  medications.forEach((medication) => {
+    const listItem = document.createElement("li");
+    listItem.className = "registered-medication";
+
+    const name = document.createElement("strong");
+    name.textContent = medication.name;
+
+    const details = document.createElement("p");
+    details.textContent = `${formatTimings(medication.timings)} / ${medication.startDate} 〜 ${medication.endDate}`;
+
+    const actions = document.createElement("div");
+    actions.className = "medication-actions";
+
+    const editButton = document.createElement("button");
+    editButton.className = "edit-button";
+    editButton.type = "button";
+    editButton.textContent = "編集";
+    editButton.addEventListener("click", () => startEditingMedication(medication));
+
+    const deleteButton = document.createElement("button");
+    deleteButton.className = "delete-button";
+    deleteButton.type = "button";
+    deleteButton.textContent = "削除";
+    deleteButton.addEventListener("click", () => deleteMedication(medication.id, medication.name));
+
+    actions.append(editButton, deleteButton);
+    listItem.append(name, details, actions);
+    medicationsList.append(listItem);
+  });
 }
 
 function findRecordedMedicine(medicationId, timing) {
@@ -52,18 +160,34 @@ function createRecordedStatus(record) {
 
 function displaySchedule() {
   todayDateElement.textContent = formatToday();
+  scheduleElement.replaceChildren();
 
-  medicineSchedule.forEach((slot) => {
+  if (medications.length === 0) {
+    const emptyMessage = document.createElement("p");
+    emptyMessage.textContent = "登録した薬はまだありません。";
+    scheduleElement.append(emptyMessage);
+    return;
+  }
+
+  timingSlots.forEach((slot) => {
+    const medicinesForTiming = medications.filter((medication) =>
+      medication.timings.includes(slot.value),
+    );
+
+    if (medicinesForTiming.length === 0) {
+      return;
+    }
+
     const timeSlot = document.createElement("section");
     timeSlot.className = "time-slot";
 
     const heading = document.createElement("h2");
-    heading.textContent = `【${slot.time}】`;
+    heading.textContent = `【${slot.label}】`;
 
     const medicineList = document.createElement("ul");
     medicineList.className = "medicine-list";
 
-    slot.medicines.forEach((medicine) => {
+    medicinesForTiming.forEach((medicine) => {
       const listItem = document.createElement("li");
       listItem.className = "medicine-item";
 
@@ -79,7 +203,7 @@ function displaySchedule() {
       takenButton.type = "button";
       takenButton.textContent = "飲んだ";
 
-      const existingRecord = findRecordedMedicine(medicine.id, slot.time);
+      const existingRecord = findRecordedMedicine(medicine.id, slot.label);
 
       if (existingRecord) {
         takenButton.textContent = "服用済み";
@@ -108,7 +232,7 @@ function displaySchedule() {
               id: createRecordId(),
               medicationId: medicine.id,
               scheduledDate,
-              timing: slot.time,
+              timing: slot.label,
               takenAt: timeInput.value,
               recordedAt: new Date().toISOString(),
             };
@@ -136,3 +260,50 @@ function displaySchedule() {
 }
 
 displaySchedule();
+displayMedications();
+
+timingInputs.forEach((timingInput) => {
+  timingInput.addEventListener("change", () => {
+    timingInputs[0].setCustomValidity("");
+  });
+});
+
+medicationForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  const formData = new FormData(medicationForm);
+  const timings = formData.getAll("timings");
+  const firstTimingInput = timingInputs[0];
+
+  if (timings.length === 0) {
+    firstTimingInput.setCustomValidity("服用タイミングを1つ以上選択してください。");
+    medicationForm.reportValidity();
+    return;
+  }
+
+  firstTimingInput.setCustomValidity("");
+
+  const medicationDetails = {
+    name: formData.get("name").trim(),
+    timings,
+    startDate: formData.get("startDate"),
+    endDate: formData.get("endDate"),
+  };
+
+  if (editingMedicationId) {
+    const medicationIndex = medications.findIndex(
+      (medication) => medication.id === editingMedicationId,
+    );
+
+    if (medicationIndex !== -1) {
+      medications[medicationIndex] = { id: editingMedicationId, ...medicationDetails };
+    }
+  } else {
+    medications.push({ id: createMedicationId(), ...medicationDetails });
+  }
+
+  saveMedications(medications);
+  resetMedicationForm();
+  displayMedications();
+  displaySchedule();
+});
