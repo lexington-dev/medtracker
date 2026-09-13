@@ -1,8 +1,14 @@
-// Step 2では、保存せずこの配列の仮データだけを画面に表示します。
+// Step 3では、保存せずこの配列の服用済み状態を画面に表示します。
 const medicineSchedule = [
-  { time: "朝", medicines: ["スルピリド50mg"] },
-  { time: "昼", medicines: ["スルピリド50mg"] },
-  { time: "晩", medicines: ["スルピリド50mg","クービビック25mg"] },
+  { time: "朝", medicines: [{ name: "スルピリド50mg", taken: false }] },
+  { time: "昼", medicines: [{ name: "スルピリド50mg", taken: false }] },
+  {
+    time: "晩",
+    medicines: [
+      { name: "スルピリド50mg", taken: false },
+      { name: "クービビック25mg", taken: false },
+    ],
+  },
 ];
 
 const todayDateElement = document.querySelector("#today-date");
@@ -34,12 +40,18 @@ function displaySchedule() {
 
       const medicineName = document.createElement("span");
       medicineName.className = "medicine-name";
-      medicineName.textContent = medicine;
+      medicineName.textContent = medicine.name;
 
       const takenButton = document.createElement("button");
       takenButton.className = "taken-button";
       takenButton.type = "button";
       takenButton.textContent = "飲んだ";
+
+      takenButton.addEventListener("click", () => {
+        medicine.taken = true;
+        takenButton.textContent = "服用済み";
+        takenButton.disabled = true;
+      });
 
       listItem.append(medicineName, takenButton);
       medicineList.append(listItem);
