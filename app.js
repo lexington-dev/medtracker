@@ -303,10 +303,36 @@ function displayHistory() {
     const historyDay = document.createElement("section");
     historyDay.className = "history-day";
 
-    const heading = document.createElement("h3");
+    const headingButton = document.createElement("button");
+    headingButton.className = "history-day-toggle";
+    headingButton.type = "button";
+
+    const heading = document.createElement("span");
     heading.textContent = formatHistoryDate(date);
 
+    const toggleIcon = document.createElement("span");
+    toggleIcon.className = "history-day-toggle-icon";
+
     const itemList = document.createElement("div");
+    itemList.className = "history-day-content";
+
+    const isLatestDay = date === historyItems[0].date;
+    let isExpanded = isLatestDay;
+
+    function updateHistoryDayState() {
+      itemList.hidden = !isExpanded;
+      toggleIcon.textContent = isExpanded ? "▼" : "▶";
+      headingButton.setAttribute("aria-expanded", String(isExpanded));
+    }
+
+    headingButton.append(heading, toggleIcon);
+
+    headingButton.addEventListener("click", () => {
+      isExpanded = !isExpanded;
+      updateHistoryDayState();
+    });
+
+    updateHistoryDayState();
     items.forEach((item) => {
       const historyItem = document.createElement("div");
       historyItem.className = "history-item";
@@ -342,7 +368,7 @@ function displayHistory() {
       itemList.append(historyItem);
     });
 
-    historyDay.append(heading, itemList);
+    historyDay.append(headingButton, itemList);
     historyList.append(historyDay);
   });
 }
