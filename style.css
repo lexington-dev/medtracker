@@ -40,6 +40,156 @@ h1 {
   gap: 20px;
 }
 
+.today-section h2,
+.history-section h2 {
+  margin: 0 0 14px;
+  font-size: 1.25rem;
+}
+
+.history-section {
+  margin-top: 32px;
+}
+
+.history-list {
+  display: grid;
+  gap: 20px;
+}
+
+.history-day {
+  overflow: hidden;
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgb(31 41 55 / 8%);
+}
+
+.history-day h3 {
+  margin: 0;
+  padding: 14px 16px;
+  background: #e8f2ff;
+  color: #1d4f8c;
+  font-size: 1rem;
+}
+
+.history-item {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 14px 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.history-item-time,
+.history-item-status {
+  font-variant-numeric: tabular-nums;
+}
+
+.history-item-status {
+  font-weight: 700;
+}
+
+.history-item-status.unrecorded {
+  color: #9a5b00;
+}
+
+.history-item-actions,
+.history-record-editor {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.history-action-button,
+.history-cancel-button,
+.history-delete-button {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid #2f80d1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1d4f8c;
+  font: inherit;
+  font-weight: 700;
+}
+
+.history-record-editor label {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  font-weight: 600;
+}
+
+.history-record-editor input[type="time"] {
+  min-height: 40px;
+  padding: 6px 8px;
+  border: 1px solid #9ca3af;
+  border-radius: 8px;
+  background: #ffffff;
+  font: inherit;
+}
+
+.history-delete-button {
+  border-color: #c2413b;
+  color: #a52c26;
+}
+
+.today-record-status,
+.today-record-editor {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.today-record-status p {
+  width: 100%;
+  margin: 6px 0 0;
+}
+
+.today-record-editor label {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  font-weight: 600;
+}
+
+.today-record-editor input[type="time"] {
+  min-height: 40px;
+  padding: 6px 8px;
+  border: 1px solid #9ca3af;
+  border-radius: 8px;
+  background: #ffffff;
+  font: inherit;
+}
+
+.record-edit-button {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid #2f80d1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1d4f8c;
+  font: inherit;
+  font-weight: 700;
+}
+
+.record-delete-button {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid #c2413b;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #a52c26;
+  font: inherit;
+  font-weight: 700;
+}
+
+.empty-history-message {
+  margin: 0;
+  color: #526070;
+}
+
 .registration-section,
 .registered-section {
   margin-top: 32px;

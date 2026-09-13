@@ -1,5 +1,6 @@
 const todayDateElement = document.querySelector("#today-date");
 const scheduleElement = document.querySelector("#schedule");
+const historyList = document.querySelector("#history-list");
 const medicationForm = document.querySelector("#medication-form");
 const medicationsList = document.querySelector("#medications-list");
 const medicationSubmitButton = document.querySelector("#medication-submit-button");
@@ -40,6 +41,8 @@ const timingSlots = [
   { value: "noon", label: "昼" },
   { value: "evening", label: "晩" },
 ];
+const timingLabels = { morning: "朝", noon: "昼", evening: "晩" };
+const timingOrder = { 朝: 0, 昼: 1, 晩: 2 };
 
 function isMedicationScheduledForDate(medication, dateString) {
   return dateString >= medication.startDate && dateString <= medication.endDate;
@@ -53,6 +56,293 @@ function getScheduledTimings(medication, dateString) {
   return [...medication.timings];
 }
 
+function createLocalDate(dateString) {
+  const [year, month, day] = dateString.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function formatDateString(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function getPreviousDate(dateString) {
+  const date = createLocalDate(dateString);
+  date.setDate(date.getDate() - 1);
+  return formatDateString(date);
+}
+
+function getDatesInRange(startDate, endDate) {
+  const dates = [];
+  const date = createLocalDate(startDate);
+  const lastDate = createLocalDate(endDate);
+
+  while (date <= lastDate) {
+    dates.push(formatDateString(date));
+    date.setDate(date.getDate() + 1);
+  }
+
+  return dates;
+}
+
+function getTimingLabel(timing) {
+  return timingLabels[timing] || timing;
+}
+
+function createRecordKey(medicationId, date, timing) {
+  return `${medicationId}|${date}|${getTimingLabel(timing)}`;
+}
+
+function getMedicationName(medicationId) {
+  const medication = medications.find((item) => item.id === medicationId);
+  return medication ? medication.name : "削除された薬";
+}
+
+function formatHistoryDate(dateString) {
+  const date = createLocalDate(dateString);
+  const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}/${month}/${day}（${weekdays[date.getDay()]}）`;
+}
+
+function getTimeFromTakenAt(takenAt) {
+  return takenAt.includes("T") ? takenAt.split("T")[1].slice(0, 5) : takenAt;
+}
+
+function createPastTakenAt(scheduledDate, time) {
+  return `${scheduledDate}T${time}:00`;
+}
+
+function getDefaultPastTime(timing) {
+  const defaultTimes = { 朝: "08:00", 昼: "12:00", 晩: "20:00" };
+  return defaultTimes[timing] || "08:00";
+}
+
+function addPastRecord(item, time) {
+  medicationRecords.push({
+    id: createRecordId(),
+    medicationId: item.medicationId,
+    scheduledDate: item.date,
+    timing: item.timing,
+    takenAt: createPastTakenAt(item.date, time),
+    recordedAt: new Date().toISOString(),
+  });
+
+  saveRecords(medicationRecords);
+  displayHistory();
+}
+
+function updatePastRecord(recordId, time) {
+  const recordIndex = medicationRecords.findIndex((record) => record.id === recordId);
+
+  if (recordIndex === -1) {
+    return;
+  }
+
+  const record = medicationRecords[recordIndex];
+  medicationRecords[recordIndex] = {
+    ...record,
+    takenAt: createPastTakenAt(record.scheduledDate, time),
+    recordedAt: new Date().toISOString(),
+  };
+
+  saveRecords(medicationRecords);
+  displayHistory();
+}
+
+function deletePastRecord(recordId) {
+  if (!window.confirm("この服薬記録を削除しますか？")) {
+    return;
+  }
+
+  const recordIndex = medicationRecords.findIndex((record) => record.id === recordId);
+
+  if (recordIndex === -1) {
+    return;
+  }
+
+  medicationRecords.splice(recordIndex, 1);
+  saveRecords(medicationRecords);
+  displayHistory();
+}
+
+function createHistoryRecordEditor(item) {
+  const editor = document.createElement("div");
+  editor.className = "history-record-editor";
+
+  const timeLabel = document.createElement("label");
+  timeLabel.textContent = "過去の服用時刻";
+
+  const timeInput = document.createElement("input");
+  timeInput.type = "time";
+  timeInput.required = true;
+  timeInput.value = item.isRecorded
+    ? getTimeFromTakenAt(item.takenAt)
+    : getDefaultPastTime(item.timing);
+  timeLabel.append(timeInput);
+
+  const saveButton = document.createElement("button");
+  saveButton.className = "history-action-button";
+  saveButton.type = "button";
+  saveButton.textContent = item.isRecorded ? "更新する" : "記録する";
+  saveButton.addEventListener("click", () => {
+    if (!timeInput.reportValidity()) {
+      return;
+    }
+
+    if (item.isRecorded) {
+      updatePastRecord(item.recordId, timeInput.value);
+    } else {
+      addPastRecord(item, timeInput.value);
+    }
+  });
+
+  const cancelButton = document.createElement("button");
+  cancelButton.className = "history-cancel-button";
+  cancelButton.type = "button";
+  cancelButton.textContent = "キャンセル";
+  cancelButton.addEventListener("click", displayHistory);
+
+  editor.append(timeLabel, saveButton, cancelButton);
+
+  if (item.isRecorded) {
+    const deleteButton = document.createElement("button");
+    deleteButton.className = "history-delete-button";
+    deleteButton.type = "button";
+    deleteButton.textContent = "削除";
+    deleteButton.addEventListener("click", () => deletePastRecord(item.recordId));
+    editor.append(deleteButton);
+  }
+
+  return editor;
+}
+
+function getHistoryItems() {
+  const historyEndDate = getPreviousDate(scheduledDate);
+  const recordedKeys = new Set();
+  const historyItems = medicationRecords
+    .filter((record) => record.scheduledDate < scheduledDate)
+    .map((record) => {
+      const timing = getTimingLabel(record.timing);
+      recordedKeys.add(createRecordKey(record.medicationId, record.scheduledDate, timing));
+
+      return {
+        date: record.scheduledDate,
+        timing,
+        medicationId: record.medicationId,
+        medicationName: getMedicationName(record.medicationId),
+        takenAt: record.takenAt,
+        recordId: record.id,
+        isRecorded: true,
+      };
+    });
+
+  medications.forEach((medication) => {
+    const endDate = medication.endDate < historyEndDate ? medication.endDate : historyEndDate;
+
+    if (medication.startDate > endDate) {
+      return;
+    }
+
+    getDatesInRange(medication.startDate, endDate).forEach((date) => {
+      getScheduledTimings(medication, date).forEach((timing) => {
+        const timingLabel = getTimingLabel(timing);
+        const recordKey = createRecordKey(medication.id, date, timingLabel);
+
+        if (!recordedKeys.has(recordKey)) {
+          historyItems.push({
+            date,
+            timing: timingLabel,
+            medicationId: medication.id,
+            medicationName: medication.name,
+            isRecorded: false,
+          });
+        }
+      });
+    });
+  });
+
+  return historyItems.sort(
+    (first, second) =>
+      second.date.localeCompare(first.date) ||
+      (timingOrder[first.timing] ?? Number.MAX_SAFE_INTEGER) -
+        (timingOrder[second.timing] ?? Number.MAX_SAFE_INTEGER),
+  );
+}
+
+function displayHistory() {
+  historyList.replaceChildren();
+  const historyItems = getHistoryItems();
+
+  if (historyItems.length === 0) {
+    const emptyMessage = document.createElement("p");
+    emptyMessage.className = "empty-history-message";
+    emptyMessage.textContent = "表示できる服薬履歴はまだありません。";
+    historyList.append(emptyMessage);
+    return;
+  }
+
+  const itemsByDate = new Map();
+  historyItems.forEach((item) => {
+    if (!itemsByDate.has(item.date)) {
+      itemsByDate.set(item.date, []);
+    }
+    itemsByDate.get(item.date).push(item);
+  });
+
+  itemsByDate.forEach((items, date) => {
+    const historyDay = document.createElement("section");
+    historyDay.className = "history-day";
+
+    const heading = document.createElement("h3");
+    heading.textContent = formatHistoryDate(date);
+
+    const itemList = document.createElement("div");
+    items.forEach((item) => {
+      const historyItem = document.createElement("div");
+      historyItem.className = "history-item";
+
+      const timing = document.createElement("span");
+      timing.className = "history-item-time";
+      timing.textContent = item.timing;
+
+      const medicationName = document.createElement("span");
+      medicationName.textContent = item.medicationName;
+
+      const status = document.createElement("span");
+      status.className = "history-item-status";
+      status.textContent = item.isRecorded ? getTimeFromTakenAt(item.takenAt) : "未記録";
+
+      if (!item.isRecorded) {
+        status.classList.add("unrecorded");
+      }
+
+      const actions = document.createElement("div");
+      actions.className = "history-item-actions";
+
+      const actionButton = document.createElement("button");
+      actionButton.className = "history-action-button";
+      actionButton.type = "button";
+      actionButton.textContent = item.isRecorded ? "編集" : "記録する";
+      actionButton.addEventListener("click", () => {
+        actions.replaceWith(createHistoryRecordEditor(item));
+      });
+
+      actions.append(actionButton);
+      historyItem.append(timing, medicationName, status, actions);
+      itemList.append(historyItem);
+    });
+
+    historyDay.append(heading, itemList);
+    historyList.append(historyDay);
+  });
+}
+
 function createRecordId() {
   recordSequence += 1;
   return `record-${Date.now()}-${recordSequence}`;
@@ -64,8 +354,7 @@ function createMedicationId() {
 }
 
 function formatTimings(timings) {
-  const timingLabels = { morning: "朝", noon: "昼", evening: "晩" };
-  return timings.map((timing) => timingLabels[timing]).join("・");
+  return timings.map((timing) => getTimingLabel(timing)).join("・");
 }
 
 function resetMedicationForm() {
@@ -110,6 +399,7 @@ function deleteMedication(medicationId, medicationName) {
 
   displayMedications();
   displaySchedule();
+  displayHistory();
 }
 
 function displayMedications() {
@@ -163,10 +453,94 @@ function findRecordedMedicine(medicationId, timing) {
   );
 }
 
-function createRecordedStatus(record) {
-  const recordedStatus = document.createElement("p");
-  recordedStatus.textContent = `✓ 服用済み ${record.takenAt}`;
+function updateTodayRecord(recordId, time) {
+  const recordIndex = medicationRecords.findIndex((record) => record.id === recordId);
 
+  if (recordIndex === -1) {
+    return;
+  }
+
+  medicationRecords[recordIndex] = {
+    ...medicationRecords[recordIndex],
+    takenAt: time,
+    recordedAt: new Date().toISOString(),
+  };
+
+  saveRecords(medicationRecords);
+  displaySchedule();
+}
+
+function deleteTodayRecord(recordId) {
+  if (!window.confirm("この服薬記録を削除しますか？")) {
+    return;
+  }
+
+  const recordIndex = medicationRecords.findIndex((record) => record.id === recordId);
+
+  if (recordIndex === -1) {
+    return;
+  }
+
+  medicationRecords.splice(recordIndex, 1);
+  saveRecords(medicationRecords);
+  displaySchedule();
+}
+
+function createTodayRecordEditor(record) {
+  const editor = document.createElement("div");
+  editor.className = "today-record-editor";
+
+  const timeLabel = document.createElement("label");
+  timeLabel.textContent = "服用時刻";
+
+  const timeInput = document.createElement("input");
+  timeInput.type = "time";
+  timeInput.required = true;
+  timeInput.value = getTimeFromTakenAt(record.takenAt);
+  timeLabel.append(timeInput);
+
+  const updateButton = document.createElement("button");
+  updateButton.className = "record-edit-button";
+  updateButton.type = "button";
+  updateButton.textContent = "更新する";
+  updateButton.addEventListener("click", () => {
+    if (timeInput.reportValidity()) {
+      updateTodayRecord(record.id, timeInput.value);
+    }
+  });
+
+  const cancelButton = document.createElement("button");
+  cancelButton.className = "record-edit-button";
+  cancelButton.type = "button";
+  cancelButton.textContent = "キャンセル";
+  cancelButton.addEventListener("click", displaySchedule);
+
+  const deleteButton = document.createElement("button");
+  deleteButton.className = "record-delete-button";
+  deleteButton.type = "button";
+  deleteButton.textContent = "削除";
+  deleteButton.addEventListener("click", () => deleteTodayRecord(record.id));
+
+  editor.append(timeLabel, updateButton, cancelButton, deleteButton);
+  return editor;
+}
+
+function createRecordedStatus(record) {
+  const recordedStatus = document.createElement("div");
+  recordedStatus.className = "today-record-status";
+
+  const statusText = document.createElement("p");
+  statusText.textContent = `✓ 服用済み ${getTimeFromTakenAt(record.takenAt)}`;
+
+  const editButton = document.createElement("button");
+  editButton.className = "record-edit-button";
+  editButton.type = "button";
+  editButton.textContent = "編集";
+  editButton.addEventListener("click", () => {
+    recordedStatus.replaceWith(createTodayRecordEditor(record));
+  });
+
+  recordedStatus.append(statusText, editButton);
   return recordedStatus;
 }
 
@@ -273,6 +647,7 @@ function displaySchedule() {
 
 displaySchedule();
 displayMedications();
+displayHistory();
 
 timingInputs.forEach((timingInput) => {
   timingInput.addEventListener("change", () => {
@@ -318,4 +693,5 @@ medicationForm.addEventListener("submit", (event) => {
   resetMedicationForm();
   displayMedications();
   displaySchedule();
+  displayHistory();
 });
