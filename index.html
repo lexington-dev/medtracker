@@ -55,6 +55,16 @@
         <h2 id="registered-title">登録した薬</h2>
         <ul id="medications-list" class="medications-list"></ul>
       </section>
+
+      <section class="data-management-section" aria-labelledby="data-management-title">
+        <h2 id="data-management-title">データ管理</h2>
+        <div class="data-management-actions">
+          <button id="export-data-button" type="button">データをエクスポート</button>
+          <button id="import-data-button" type="button">データをインポート</button>
+          <input id="import-file-input" type="file" accept=".json,application/json" hidden />
+        </div>
+        <p id="data-management-message" class="data-management-message" role="status"></p>
+      </section>
     </main>
 
     <script src="storage.js"></script>

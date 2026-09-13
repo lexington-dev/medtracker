@@ -191,12 +191,14 @@ h1 {
 }
 
 .registration-section,
-.registered-section {
+.registered-section,
+.data-management-section {
   margin-top: 32px;
 }
 
 .registration-section h2,
-.registered-section h2 {
+.registered-section h2,
+.data-management-section h2 {
   margin: 0 0 14px;
   font-size: 1.25rem;
 }
@@ -259,6 +261,27 @@ h1 {
 .medications-list {
   padding: 0;
   list-style: none;
+}
+
+.data-management-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.data-management-actions button {
+  min-height: 48px;
+  border: 1px solid #2f80d1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1d4f8c;
+  font: inherit;
+  font-weight: 700;
+}
+
+.data-management-message {
+  min-height: 1.5em;
+  margin: 10px 0 0;
+  color: #a52c26;
 }
 
 .registered-medication,

@@ -4,6 +4,10 @@ const historyList = document.querySelector("#history-list");
 const medicationForm = document.querySelector("#medication-form");
 const medicationsList = document.querySelector("#medications-list");
 const medicationSubmitButton = document.querySelector("#medication-submit-button");
+const exportDataButton = document.querySelector("#export-data-button");
+const importDataButton = document.querySelector("#import-data-button");
+const importFileInput = document.querySelector("#import-file-input");
+const dataManagementMessage = document.querySelector("#data-management-message");
 const timingInputs = medicationForm.querySelectorAll('input[name="timings"]');
 const medicationRecords = loadRecords();
 const medications = loadMedications();
@@ -353,6 +357,76 @@ function createMedicationId() {
   return `med-${Date.now()}-${medicationSequence}`;
 }
 
+function showDataManagementMessage(message) {
+  dataManagementMessage.textContent = message;
+}
+
+function exportData() {
+  const backupData = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    medications,
+    records: medicationRecords,
+  };
+  const json = JSON.stringify(backupData, null, 2);
+  const blob = new Blob([json], { type: "application/json" });
+  const downloadUrl = URL.createObjectURL(blob);
+  const downloadLink = document.createElement("a");
+
+  downloadLink.href = downloadUrl;
+  downloadLink.download = `medication-tracker-${getScheduledDate()}.json`;
+  document.body.append(downloadLink);
+  downloadLink.click();
+  downloadLink.remove();
+  URL.revokeObjectURL(downloadUrl);
+}
+
+function isValidBackupData(data) {
+  return (
+    data &&
+    typeof data === "object" &&
+    !Array.isArray(data) &&
+    Array.isArray(data.medications) &&
+    Array.isArray(data.records)
+  );
+}
+
+function importData(file) {
+  const reader = new FileReader();
+
+  reader.addEventListener("load", () => {
+    let importedData;
+
+    try {
+      importedData = JSON.parse(reader.result);
+    } catch {
+      showDataManagementMessage("JSONファイルを読み込めませんでした。");
+      return;
+    }
+
+    if (!isValidBackupData(importedData)) {
+      showDataManagementMessage("ファイルの形式が正しくありません。");
+      return;
+    }
+
+    if (!window.confirm("現在のデータをインポートしたデータで置き換えますか？")) {
+      return;
+    }
+
+    medications.splice(0, medications.length, ...importedData.medications);
+    medicationRecords.splice(0, medicationRecords.length, ...importedData.records);
+    saveMedications(medications);
+    saveRecords(medicationRecords);
+    window.location.reload();
+  });
+
+  reader.addEventListener("error", () => {
+    showDataManagementMessage("ファイルを読み込めませんでした。");
+  });
+
+  reader.readAsText(file);
+}
+
 function formatTimings(timings) {
   return timings.map((timing) => getTimingLabel(timing)).join("・");
 }
@@ -648,6 +722,24 @@ function displaySchedule() {
 displaySchedule();
 displayMedications();
 displayHistory();
+
+exportDataButton.addEventListener("click", exportData);
+
+importDataButton.addEventListener("click", () => {
+  importFileInput.click();
+});
+
+importFileInput.addEventListener("change", () => {
+  const [file] = importFileInput.files;
+
+  if (!file) {
+    return;
+  }
+
+  showDataManagementMessage("");
+  importData(file);
+  importFileInput.value = "";
+});
 
 timingInputs.forEach((timingInput) => {
   timingInput.addEventListener("change", () => {
