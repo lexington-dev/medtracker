@@ -1,12 +1,12 @@
-// Step 3では、保存せずこの配列の服用済み状態を画面に表示します。
+// Step 4では、保存せず「飲んだ」ボタンを押した薬に時刻入力欄を表示します。
 const medicineSchedule = [
-  { time: "朝", medicines: [{ name: "スルピリド50mg", taken: false }] },
-  { time: "昼", medicines: [{ name: "スルピリド50mg", taken: false }] },
+  { time: "朝", medicines: [{ name: "スルピリド50mg" }] },
+  { time: "昼", medicines: [{ name: "スルピリド50mg" }] },
   {
     time: "晩",
     medicines: [
-      { name: "スルピリド50mg", taken: false },
-      { name: "クービビック25mg", taken: false },
+      { name: "スルピリド50mg" },
+      { name: "クービビック25mg" },
     ],
   },
 ];
@@ -19,6 +19,14 @@ function formatToday() {
   const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
 
   return `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日（${weekdays[today.getDay()]}）`;
+}
+
+function getCurrentTime() {
+  const now = new Date();
+  const hours = String(now.getHours()).padStart(2, "0");
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+
+  return `${hours}:${minutes}`;
 }
 
 function displaySchedule() {
@@ -38,9 +46,12 @@ function displaySchedule() {
       const listItem = document.createElement("li");
       listItem.className = "medicine-item";
 
+      const medicineDetails = document.createElement("div");
+
       const medicineName = document.createElement("span");
       medicineName.className = "medicine-name";
       medicineName.textContent = medicine.name;
+      medicineDetails.append(medicineName);
 
       const takenButton = document.createElement("button");
       takenButton.className = "taken-button";
@@ -48,12 +59,19 @@ function displaySchedule() {
       takenButton.textContent = "飲んだ";
 
       takenButton.addEventListener("click", () => {
-        medicine.taken = true;
-        takenButton.textContent = "服用済み";
+        const timeLabel = document.createElement("label");
+        timeLabel.textContent = "服用時刻";
+
+        const timeInput = document.createElement("input");
+        timeInput.type = "time";
+        timeInput.value = getCurrentTime();
+
+        timeLabel.append(document.createElement("br"), timeInput);
+        medicineDetails.append(timeLabel);
         takenButton.disabled = true;
       });
 
-      listItem.append(medicineName, takenButton);
+      listItem.append(medicineDetails, takenButton);
       medicineList.append(listItem);
     });
 
