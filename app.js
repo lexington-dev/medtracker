@@ -1,6 +1,6 @@
 const todayDateElement = document.querySelector("#today-date");
 const scheduleElement = document.querySelector("#schedule");
-const medicationRecords = [];
+const medicationRecords = loadRecords();
 let recordSequence = 0;
 
 function formatToday() {
@@ -34,6 +34,22 @@ function createRecordId() {
   return `record-${Date.now()}-${recordSequence}`;
 }
 
+function findRecordedMedicine(medicationId, timing) {
+  return medicationRecords.find(
+    (record) =>
+      record.medicationId === medicationId &&
+      record.scheduledDate === scheduledDate &&
+      record.timing === timing,
+  );
+}
+
+function createRecordedStatus(record) {
+  const recordedStatus = document.createElement("p");
+  recordedStatus.textContent = `✓ 服用済み ${record.takenAt}`;
+
+  return recordedStatus;
+}
+
 function displaySchedule() {
   todayDateElement.textContent = formatToday();
 
@@ -63,47 +79,52 @@ function displaySchedule() {
       takenButton.type = "button";
       takenButton.textContent = "飲んだ";
 
-      takenButton.addEventListener("click", () => {
-        const timeConfirmation = document.createElement("div");
+      const existingRecord = findRecordedMedicine(medicine.id, slot.time);
 
-        const timeLabel = document.createElement("label");
-        timeLabel.textContent = "服用時刻";
-
-        const timeInput = document.createElement("input");
-        timeInput.type = "time";
-        timeInput.value = getCurrentTime();
-
-        timeLabel.append(document.createElement("br"), timeInput);
-
-        const recordButton = document.createElement("button");
-        recordButton.className = "taken-button";
-        recordButton.type = "button";
-        recordButton.textContent = "記録する";
-
-        recordButton.addEventListener("click", () => {
-          const medicationRecord = {
-            id: createRecordId(),
-            medicationId: medicine.id,
-            scheduledDate,
-            timing: slot.time,
-            takenAt: timeInput.value,
-            recordedAt: new Date().toISOString(),
-          };
-
-          medicationRecords.push(medicationRecord);
-
-          takenButton.textContent = "服用済み";
-
-          const recordedStatus = document.createElement("p");
-          recordedStatus.textContent = `✓ 服用済み ${medicationRecord.takenAt}`;
-
-          timeConfirmation.replaceWith(recordedStatus);
-        });
-
-        timeConfirmation.append(timeLabel, recordButton);
-        medicineDetails.append(timeConfirmation);
+      if (existingRecord) {
+        takenButton.textContent = "服用済み";
         takenButton.disabled = true;
-      });
+        medicineDetails.append(createRecordedStatus(existingRecord));
+      } else {
+        takenButton.addEventListener("click", () => {
+          const timeConfirmation = document.createElement("div");
+
+          const timeLabel = document.createElement("label");
+          timeLabel.textContent = "服用時刻";
+
+          const timeInput = document.createElement("input");
+          timeInput.type = "time";
+          timeInput.value = getCurrentTime();
+
+          timeLabel.append(document.createElement("br"), timeInput);
+
+          const recordButton = document.createElement("button");
+          recordButton.className = "taken-button";
+          recordButton.type = "button";
+          recordButton.textContent = "記録する";
+
+          recordButton.addEventListener("click", () => {
+            const medicationRecord = {
+              id: createRecordId(),
+              medicationId: medicine.id,
+              scheduledDate,
+              timing: slot.time,
+              takenAt: timeInput.value,
+              recordedAt: new Date().toISOString(),
+            };
+
+            medicationRecords.push(medicationRecord);
+            saveRecords(medicationRecords);
+
+            takenButton.textContent = "服用済み";
+            timeConfirmation.replaceWith(createRecordedStatus(medicationRecord));
+          });
+
+          timeConfirmation.append(timeLabel, recordButton);
+          medicineDetails.append(timeConfirmation);
+          takenButton.disabled = true;
+        });
+      }
 
       listItem.append(medicineDetails, takenButton);
       medicineList.append(listItem);
