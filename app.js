@@ -1,18 +1,7 @@
-// Step 4では、保存せず「飲んだ」ボタンを押した薬に時刻入力欄を表示します。
-const medicineSchedule = [
-  { time: "朝", medicines: [{ name: "スルピリド50mg" }] },
-  { time: "昼", medicines: [{ name: "スルピリド50mg" }] },
-  {
-    time: "晩",
-    medicines: [
-      { name: "スルピリド50mg" },
-      { name: "クービビック25mg" },
-    ],
-  },
-];
-
 const todayDateElement = document.querySelector("#today-date");
 const scheduleElement = document.querySelector("#schedule");
+const medicationRecords = [];
+let recordSequence = 0;
 
 function formatToday() {
   const today = new Date();
@@ -27,6 +16,22 @@ function getCurrentTime() {
   const minutes = String(now.getMinutes()).padStart(2, "0");
 
   return `${hours}:${minutes}`;
+}
+
+function getScheduledDate() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+const scheduledDate = getScheduledDate();
+
+function createRecordId() {
+  recordSequence += 1;
+  return `record-${Date.now()}-${recordSequence}`;
 }
 
 function displaySchedule() {
@@ -59,6 +64,8 @@ function displaySchedule() {
       takenButton.textContent = "飲んだ";
 
       takenButton.addEventListener("click", () => {
+        const timeConfirmation = document.createElement("div");
+
         const timeLabel = document.createElement("label");
         timeLabel.textContent = "服用時刻";
 
@@ -67,7 +74,34 @@ function displaySchedule() {
         timeInput.value = getCurrentTime();
 
         timeLabel.append(document.createElement("br"), timeInput);
-        medicineDetails.append(timeLabel);
+
+        const recordButton = document.createElement("button");
+        recordButton.className = "taken-button";
+        recordButton.type = "button";
+        recordButton.textContent = "記録する";
+
+        recordButton.addEventListener("click", () => {
+          const medicationRecord = {
+            id: createRecordId(),
+            medicationId: medicine.id,
+            scheduledDate,
+            timing: slot.time,
+            takenAt: timeInput.value,
+            recordedAt: new Date().toISOString(),
+          };
+
+          medicationRecords.push(medicationRecord);
+
+          takenButton.textContent = "服用済み";
+
+          const recordedStatus = document.createElement("p");
+          recordedStatus.textContent = `✓ 服用済み ${medicationRecord.takenAt}`;
+
+          timeConfirmation.replaceWith(recordedStatus);
+        });
+
+        timeConfirmation.append(timeLabel, recordButton);
+        medicineDetails.append(timeConfirmation);
         takenButton.disabled = true;
       });
 
