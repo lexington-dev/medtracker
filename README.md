@@ -1,22 +1,67 @@
-# 服薬記録アプリ
+# 服薬記録アプリ (MedTracker)
 
-薬を飲んだことを簡単に記録するための個人用Webアプリ。
+[English](#medtracker---medication-tracker) | [日本語](#服薬記録アプリ-medtracker)
 
-## 目的
+毎日の服薬タイミング管理や記録をスムーズに行うためのWebアプリケーションです。
 
-* 今日飲む薬を確認する
-* 薬を飲んだことを記録する
-* 実際に飲んだ時刻を記録する
-* 過去の服薬履歴を確認する
+## 🎯 目的
+服薬の飲み忘れを防止し、日々の服薬履歴をシンプルかつ安全に管理することを目指しています。
 
-## 開発環境
+## ✨ 主な機能
+- **薬剤の登録・管理:** 飲むお薬の名称やタイミングを登録
+- **服薬記録・履歴確認:** 服薬した日時の記録と過去の履歴閲覧
+- **PWA対応:** スマートフォンやPCのホーム画面に追加してアプリ感覚で利用可能
+- **ローカル保存:** 入力データはすべて端末内（localStorage）にのみ保存され、外部サーバーへは送信されません
 
-* HTML
-* CSS
-* Vanilla JavaScript
-* localStorage
-* PWA（将来対応）
+## 🛠️ 技術スタック / 動作環境
+- HTML5
+- CSS3
+- Vanilla JavaScript (ES6+)
+- Storage: localStorage
+- App: PWA (Progressive Web Apps)
 
-## 開発方針
+## 🚀 使い方
+1. フォルダ内の `index.html` をお使いのブラウザで開きます。
+2. ブラウザの「ホーム画面に追加」機能を使用してPWAとしてインストール・ご利用いただけます。
 
-AI（Codex / Antigravity）を活用しながら、一つずつ機能を実装していく。
+## ⚠️ 免責事項 (Disclaimer)
+- 本ソフトウェアは個人開発の記録用アプリであり、医療的診断や助言を提供するものではありません。
+- 本アプリの使用によって生じた一切の損害について、作者は責任を負いません。自己責任のもとでご使用ください。
+
+## 📜 ライセンス (License)
+[MIT License](./LICENSE)
+
+---
+
+# MedTracker - Medication Tracker
+
+[English](#medtracker---medication-tracker) | [日本語](#服薬記録アプリ-medtracker)
+
+A web application designed to help you easily manage medication schedules and log daily doses.
+
+## 🎯 Purpose
+Aims to prevent missed doses and provide a simple, secure way to track your daily medication history.
+
+## ✨ Key Features
+- **Medication Management:** Register and manage medication names and dosages/schedules.
+- **Dose Logging & History:** Log the date/time of each dose and review past history.
+- **PWA Support:** Install on your smartphone or PC home screen for a native app-like experience.
+- **Local Storage:** All data is stored strictly in your browser (`localStorage`) and is never transmitted to external servers.
+
+## 🛠️ Tech Stack / Environment
+- HTML5
+- CSS3
+- Vanilla JavaScript (ES6+)
+- Storage: `localStorage`
+- App: PWA (Progressive Web Apps)
+
+## 🚀 How to Use
+1. Open `index.html` in your web browser.
+2. Use the "Add to Home Screen" option in your browser to install it as a PWA.
+
+## ⚠️ Disclaimer
+- This software is a personal medication-logging project and does not provide medical advice, diagnosis, or treatment.
+- The author accepts no liability for any loss or damage arising from the use of this application. Use at your own risk.
+
+## 📜 License
+[MIT License](./LICENSE)
