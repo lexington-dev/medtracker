@@ -21,8 +21,9 @@
 - App: PWA (Progressive Web Apps)
 
 ## 🚀 使い方
-1. フォルダ内の `index.html` をお使いのブラウザで開きます。
-2. ブラウザの「ホーム画面に追加」機能を使用してPWAとしてインストール・ご利用いただけます。
+1. Webブラウザで [https://lexington-dev.github.io/medtracker/](https://lexington-dev.github.io/medtracker/) にアクセスします。
+2. ブラウザのメニューから「ホーム画面に追加」または「アプリをインストール」を選択すると、PWAとしてご利用いただけます。
+※ ローカル環境で実行したい場合は、リポジトリをクローンまたはダウンロードし、フォルダ内の `index.html` をブラウザで開いてください。
 
 ## ⚠️ 免責事項 (Disclaimer)
 - 本ソフトウェアは個人開発の記録用アプリであり、医療的診断や助言を提供するものではありません。
@@ -56,8 +57,9 @@ Aims to prevent missed doses and provide a simple, secure way to track your dail
 - App: PWA (Progressive Web Apps)
 
 ## 🚀 How to Use
-1. Open `index.html` in your web browser.
-2. Use the "Add to Home Screen" option in your browser to install it as a PWA.
+1. Access [https://lexington-dev.github.io/medtracker/](https://lexington-dev.github.io/medtracker/) in your web browser.
+2. Select "Add to Home Screen" or "Install App" from your browser menu to use it as a PWA.
+*Note: To run it locally, clone or download the repository and open `index.html` in your browser.*
 
 ## ⚠️ Disclaimer
 - This software is a personal medication-logging project and does not provide medical advice, diagnosis, or treatment.
