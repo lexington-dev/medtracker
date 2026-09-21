@@ -2,73 +2,172 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>服薬記録</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>MedTracker - 服薬記録</title>
+    <meta name="description" content="毎日の服薬を記録・管理するPWAアプリ。履歴確認・グラフ表示・リマインダー機能付き。" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="MedTracker" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="style.css" />
     <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#5B6EF5" />
   </head>
   <body>
-    <main class="app-container">
-      <header class="page-header">
-        <h1>服薬記録</h1>
-        <p id="today-date" class="today-date"></p>
+    <div class="app-wrapper">
+
+      <!-- ===== App Header ===== -->
+      <header class="app-header">
+        <div class="header-content">
+          <div class="header-title-group">
+            <h1 class="app-title">MedTracker</h1>
+            <p id="today-date" class="today-date"></p>
+          </div>
+          <div id="today-progress-badge" class="header-badge" aria-live="polite" aria-label="今日の服薬進捗"></div>
+        </div>
       </header>
 
-      <section class="today-section" aria-labelledby="today-title">
-        <h2 id="today-title">今日の服薬</h2>
-        <div id="schedule" class="schedule" aria-label="今日の服薬予定"></div>
-      </section>
+      <!-- ===== Tab Content Area ===== -->
+      <main class="tab-container" id="main-content">
 
-      <section class="history-section" aria-labelledby="history-title">
-        <h2 id="history-title">服薬履歴</h2>
-        <div id="history-list" class="history-list"></div>
-      </section>
+        <!-- Tab: 今日 -->
+        <section class="tab-panel" id="tab-today" role="tabpanel" aria-labelledby="nav-today">
+          <div class="section-content">
+            <h2 class="section-title">今日の服薬</h2>
+            <div id="schedule" class="schedule" aria-label="今日の服薬スケジュール"></div>
+          </div>
+        </section>
 
-      <section class="registration-section" aria-labelledby="registration-title">
-        <h2 id="registration-title">薬を登録</h2>
-        <form id="medication-form" class="medication-form">
-          <label>
-            薬の名前
-            <input type="text" name="name" required />
-          </label>
+        <!-- Tab: 履歴 -->
+        <section class="tab-panel" id="tab-history" role="tabpanel" aria-labelledby="nav-history" hidden>
+          <div class="section-content">
+            <h2 class="section-title">服薬履歴</h2>
+            <div id="history-list" class="history-list" aria-label="服薬履歴一覧"></div>
+          </div>
+        </section>
 
-          <fieldset>
-            <legend>服用タイミング</legend>
-            <label><input type="checkbox" name="timings" value="morning" /> 朝</label>
-            <label><input type="checkbox" name="timings" value="noon" /> 昼</label>
-            <label><input type="checkbox" name="timings" value="evening" /> 晩</label>
-          </fieldset>
+        <!-- Tab: グラフ -->
+        <section class="tab-panel" id="tab-chart" role="tabpanel" aria-labelledby="nav-chart" hidden>
+          <div class="section-content">
+            <h2 class="section-title">服薬グラフ</h2>
+            <div class="period-selector" role="group" aria-label="表示期間を選択">
+              <button class="period-btn active" data-period="7" id="period-7">直近7日</button>
+              <button class="period-btn" data-period="30" id="period-30">直近30日</button>
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-subtitle">日別遵守率</h3>
+              <div class="chart-wrapper">
+                <canvas id="adherence-chart" aria-label="日別服薬遵守率の棒グラフ"></canvas>
+              </div>
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-subtitle">薬別遵守率</h3>
+              <div id="medication-adherence-list" class="medication-adherence-list"></div>
+            </div>
+            <div class="chart-card" id="stats-summary"></div>
+          </div>
+        </section>
 
-          <label>
-            開始日
-            <input type="date" name="startDate" required />
-          </label>
-          <label>
-            終了日
-            <input type="date" name="endDate" required />
-          </label>
+        <!-- Tab: 設定 -->
+        <section class="tab-panel" id="tab-settings" role="tabpanel" aria-labelledby="nav-settings" hidden>
+          <div class="section-content">
 
-          <button id="medication-submit-button" class="registration-button" type="submit">登録する</button>
-        </form>
-      </section>
+            <!-- Alarm Settings -->
+            <h2 class="section-title">
+              <span class="section-title-icon" aria-hidden="true">⏰</span>アラーム設定
+            </h2>
+            <div class="settings-card" id="alarm-settings-panel" aria-label="アラーム設定パネル"></div>
 
-      <section class="registered-section" aria-labelledby="registered-title">
-        <h2 id="registered-title">登録した薬</h2>
-        <ul id="medications-list" class="medications-list"></ul>
-      </section>
+            <!-- Medication Registration -->
+            <h2 class="section-title" style="margin-top:28px;">
+              <span class="section-title-icon" aria-hidden="true">💊</span>薬を登録
+            </h2>
+            <form id="medication-form" class="medication-form" novalidate>
+              <label class="form-label">
+                <span class="label-text">薬の名前</span>
+                <input type="text" name="name" required class="form-input" placeholder="例：アムロジピン" autocomplete="off" />
+              </label>
 
-      <section class="data-management-section" aria-labelledby="data-management-title">
-        <h2 id="data-management-title">データ管理</h2>
-        <div class="data-management-actions">
-          <button id="export-data-button" type="button">データをエクスポート</button>
-          <button id="import-data-button" type="button">データをインポート</button>
-          <input id="import-file-input" type="file" accept=".json,application/json" hidden />
-        </div>
-        <p id="data-management-message" class="data-management-message" role="status"></p>
-      </section>
-    </main>
+              <fieldset class="form-fieldset">
+                <legend class="form-legend">服用タイミング</legend>
+                <label class="checkbox-label"><input type="checkbox" name="timings" value="morning" /> 朝</label>
+                <label class="checkbox-label"><input type="checkbox" name="timings" value="noon" /> 昼</label>
+                <label class="checkbox-label"><input type="checkbox" name="timings" value="evening" /> 晩</label>
+              </fieldset>
 
+              <div class="date-row">
+                <label class="form-label">
+                  <span class="label-text">開始日</span>
+                  <input type="date" name="startDate" required class="form-input" />
+                </label>
+                <label class="form-label">
+                  <span class="label-text">終了日</span>
+                  <input type="date" name="endDate" required class="form-input" />
+                </label>
+              </div>
+
+              <button id="medication-submit-button" class="btn-primary" type="submit">登録する</button>
+            </form>
+
+            <!-- Registered Medications -->
+            <h2 class="section-title" style="margin-top:28px;">
+              <span class="section-title-icon" aria-hidden="true">📋</span>登録した薬
+            </h2>
+            <ul id="medications-list" class="medications-list" aria-label="登録済み薬一覧"></ul>
+
+            <!-- Data Management -->
+            <h2 class="section-title" style="margin-top:28px;">
+              <span class="section-title-icon" aria-hidden="true">🗂️</span>データ管理
+            </h2>
+            <div class="settings-card">
+              <div class="data-management-actions">
+                <button id="export-data-button" class="btn-outline" type="button">
+                  <span class="btn-icon" aria-hidden="true">💾</span>ダウンロード保存
+                </button>
+                <button id="share-data-button" class="btn-outline btn-share" type="button">
+                  <span class="btn-icon" aria-hidden="true">📤</span>共有して保存
+                </button>
+                <button id="import-data-button" class="btn-outline" type="button">
+                  <span class="btn-icon" aria-hidden="true">📂</span>データをインポート
+                </button>
+                <input id="import-file-input" type="file" accept=".json,application/json" hidden aria-hidden="true" />
+              </div>
+              <p id="data-management-message" class="data-management-message" role="status" aria-live="polite"></p>
+            </div>
+
+          </div>
+        </section>
+      </main>
+
+      <!-- ===== Bottom Navigation ===== -->
+      <nav class="bottom-nav" role="tablist" aria-label="メインナビゲーション">
+        <button class="nav-item active" id="nav-today" role="tab" aria-selected="true" aria-controls="tab-today" data-tab="today">
+          <span class="nav-icon" aria-hidden="true">💊</span>
+          <span class="nav-label">今日</span>
+        </button>
+        <button class="nav-item" id="nav-history" role="tab" aria-selected="false" aria-controls="tab-history" data-tab="history">
+          <span class="nav-icon" aria-hidden="true">📋</span>
+          <span class="nav-label">履歴</span>
+        </button>
+        <button class="nav-item" id="nav-chart" role="tab" aria-selected="false" aria-controls="tab-chart" data-tab="chart">
+          <span class="nav-icon" aria-hidden="true">📊</span>
+          <span class="nav-label">グラフ</span>
+        </button>
+        <button class="nav-item" id="nav-settings" role="tab" aria-selected="false" aria-controls="tab-settings" data-tab="settings">
+          <span class="nav-icon" aria-hidden="true">⚙️</span>
+          <span class="nav-label">設定</span>
+        </button>
+      </nav>
+
+    </div><!-- /.app-wrapper -->
+
+    <!-- Scripts: load order matters -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <script src="storage.js"></script>
+    <script src="alarm.js"></script>
+    <script src="charts.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

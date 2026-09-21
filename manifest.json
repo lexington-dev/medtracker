@@ -1,10 +1,10 @@
 {
-  "name": "服薬記録",
-  "short_name": "服薬記録",
+  "name": "MedTracker",
+  "short_name": "MedTracker",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#f3f6fb",
-  "theme_color": "#2f80d1",
+  "background_color": "#F0F2FF",
+  "theme_color": "#5B6EF5",
   "icons": [
     {
       "src": "icons/icon-192.png",
