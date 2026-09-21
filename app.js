@@ -737,8 +737,9 @@ function exportData() {
 async function shareData() {
   const json     = JSON.stringify(buildBackupData(), null, 2);
   const fileName = `medtracker-${scheduledDate}.json`;
-  const blob     = new Blob([json], { type: "application/json" });
-  const file     = new File([blob], fileName, { type: "application/json" });
+  // OSによっては application/json の共有がブロックされるため text/plain を指定
+  const blob     = new Blob([json], { type: "text/plain" });
+  const file     = new File([blob], fileName, { type: "text/plain" });
 
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     try {
@@ -750,13 +751,15 @@ async function shareData() {
       showDataManagementMessage("");
     } catch (err) {
       if (err.name !== "AbortError") {
-        showDataManagementMessage("共有に失敗しました。ダウンロードをお試しください。");
+        // 共有に失敗した場合はダウンロードにフォールバック
+        exportData();
+        showDataManagementMessage("共有に失敗したため、ファイルのダウンロードを行いました。");
       }
     }
   } else {
     // Fallback: direct download
     exportData();
-    showDataManagementMessage("このブラウザは共有機能に対応していないため、ダウンロードしました。");
+    showDataManagementMessage("このブラウザはファイル共有機能に対応していないため、ダウンロードしました。");
   }
 }
 
